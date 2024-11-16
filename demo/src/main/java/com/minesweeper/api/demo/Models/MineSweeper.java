@@ -142,6 +142,16 @@ public class MineSweeper
 			field.get(p.getRow()).set(p.getCol(), MineMark);
 		}
 
+		for(List<Character> row : field)
+		{
+			row.stream().filter(c -> c.equals(' ')).forEach(c -> {
+				int rowIndx = field.indexOf(row);
+				int colIndx = row.indexOf(c);
+
+				if(!checkMine(colIndx, rowIndx)) open(colIndx, rowIndx);
+			});
+		}
+
 		setCompleted(true);
 	}
 }
