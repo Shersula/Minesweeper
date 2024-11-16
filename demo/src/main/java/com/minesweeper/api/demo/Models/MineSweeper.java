@@ -62,14 +62,18 @@ public class MineSweeper
 		game_id = UUID.randomUUID();
 	}
 
-	public void click(int col, int row)
+	public boolean click(int col, int row)
 	{
+		if(field.get(row).get(col) != ' ') return false;
+
 		if(checkMine(col, row)) complete('X');
 		else
 		{
 			open(col, row);
 			if(getCountCloseCell() == MinePosition.size()) complete('M');
 		}
+
+		return true;
 	}
 
 	private void open(int col, int row)

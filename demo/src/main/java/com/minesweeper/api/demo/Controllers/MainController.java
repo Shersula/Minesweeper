@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.minesweeper.api.demo.DTO.Turn;
 import com.minesweeper.api.demo.Errors.Errors;
+import com.minesweeper.api.demo.Errors.TurnException;
 import com.minesweeper.api.demo.Models.MineSweeper;
 
 import org.springframework.web.bind.annotation.PostMapping;
@@ -40,11 +41,17 @@ public class MainController
 
 	@CrossOrigin(origins = {"https://minesweeper-test.studiotg.ru"})
 	@PostMapping("/turn")
-	public MineSweeper turnGame(@RequestBody Turn turn) {
-
+	public MineSweeper turnGame(@RequestBody Turn turn) throws TurnException
+	{
 		MineSweeper game = GamesList.stream().filter(g -> g.getGame_id().equals(turn.getGame_id())).findFirst().orElse(null);
 
-		if(game != null) game.click(turn.getCol(), turn.getRow());
+		if(game != null)
+		{
+			if(game.isCompleted()) throw new TurnException(new Errors("Игра закончена!"));
+
+			if(!game.click(turn.getCol(), turn.getRow())) throw new TurnException(new Errors("Ячейка уже открыта!"));
+		}
+		else throw new TurnException(new Errors("Игра с таким идентификатором не найдена"));
 
 		return game;
 	}
@@ -65,5 +72,11 @@ public class MainController
 		ResponseEntity<Errors> response = new ResponseEntity<>(new Errors(errMsg), HttpStatus.BAD_REQUEST);
 		
 		return response;
+	}
+
+	@ExceptionHandler
+	public ResponseEntity<Errors> ExHandler(TurnException e)
+	{
+		return new ResponseEntity<>(e.getErrors(), HttpStatus.BAD_REQUEST);
 	}
 }
